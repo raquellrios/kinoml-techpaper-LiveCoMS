@@ -1,0 +1,771 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% LIVECOMS ARTICLE TEMPLATE FOR BEST PRACTICES GUIDE
+%%% ADAPTED FROM ELIFE ARTICLE TEMPLATE (8/10/2017)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% PREAMBLE
+\documentclass[9pt,lessons]{livecoms}
+% Use the 'onehalfspacing' option for 1.5 line spacing
+% Use the 'doublespacing' option for 2.0 line spacing
+% Use the 'lineno' option for adding line numbers.
+% Use the 'pubversion' option for adding the citation and publication information to the document footer, when the DOI is assigned and the article is added to a live issue.
+% The 'bestpractices' option for indicates that this is a best practices guide.
+% Omit the bestpractices option to remove the marking as a LiveCoMS paper.
+% Please note that these options may affect formatting.
+
+\usepackage{lipsum} % Required to insert dummy text
+\usepackage[version=4]{mhchem}
+\usepackage{siunitx}
+\DeclareSIUnit\Molar{M}
+\usepackage[italic]{mathastext}
+\graphicspath{{figures/}}
+\usepackage{listings} 
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{white}, % Set the background color
+    basicstyle=\footnotesize\ttfamily,
+    breakatwhitespace=false,
+    breaklines=true, 
+    captionpos=b,
+    commentstyle=\color{Jupyterblue},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    stepnumber=1,
+    stringstyle=\color{red},
+    tabsize=4,
+    showlines=false,
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IMPORTANT USER CONFIGURATION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\versionnumber}{1.3}  % you should update the minor version number in preprints and major version number of submissions.
+% Do not add a newline in the next command, no matter how long the repository name is, as it will break the link in the PDF.
+\newcommand{\githubrepository}{\url{https://github.com/myaccount/homegithubrepository}}  %this should be the main github repository for this article
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% ARTICLE SETUP
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Lessons learned during the journey of data: from experiment to model for predicting kinase affinity, selectivity, polypharmacology, and resistance}
+
+\author[1,3]{Raquel L\'{o}pez-Ríos de Castro}
+\author[1,3]{Jaime Rodr\'{i}guez-Guerra}
+\author[1,3]{David Schaller}
+\author[1,3]{Talia B. Kimber}
+\author[1,3]{Corey Taylor}
+\author[3]{Jessica B. White}
+\author[2]{Michael Backenköhler}
+\author[3]{Alexander Payne}
+\author[3]{Ben Kaminow}
+\author[3]{Iv\'{a}n Pulido}
+\author[3]{Sukrit Singh}
+\author[2]{Paula Linh Kramer}
+\author[1,3]{Guillermo P\'{e}rez-Hern\'{a}ndez}
+\author[1,2*]{Andrea Volkamer}
+\author[3*]{John D. Chodera}
+
+\affil[1]{\textit{In silico} Toxicology and Structural Bioinformatics, Institute of Physiology, Charit\'e-Universit\"atsmedizin Berlin, Germany}
+\affil[2]{Data Driven Drug Design, Saarland University, Saarbrücken, Germany}
+\affil[3]{Computational and Systems Biology Program, Sloan Kettering Institute, Memorial Sloan Kettering Cancer Center, New York, USA}
+
+\corr{andrea.volkamer@cs.uni-saarland.de}{AV}
+\corr{john.chodera@choderalab.org}{JDC}
+
+\orcid{Raquel L\'{o}pez-Ríos de Castro}{0000-0003-2668-7405}
+\orcid{Jaime Rodr\'{i}guez-Guerra}{0000-0001-8974-1566}
+\orcid{David Schaller}{0000-0002-1881-4518}
+\orcid{Talia B. Kimber}{0000-0002-8881-920X}
+\orcid{Corey Taylor}{0000-0003-2535-9514}
+\orcid{Jessica B. White}{0000-0001-5748-8383}
+\orcid{Michael Backenköhler}{}
+\orcid{Alexander Payne}{0000-0003-0947-0191}
+\orcid{Ben Kaminow}{0000-0002-2266-3353}
+\orcid{Iv\'{a}n Pulido}{0000-0002-7178-8136}
+\orcid{Sukrit Singh}{0000-0003-1914-4955}
+\orcid{Paula Linh Kramer}{0009-0000-0302-8744}
+\orcid{Guillermo P\'{e}rez-Hern\'{a}ndez}{0000-0002-9287-8704}
+\orcid{Andrea Volkamer}{0000-0002-3760-580X}
+\orcid{John D. Chodera}{0000-0003-0542-119X}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% PUBLICATION INFORMATION
+%%% Fill out these parameters when available
+%%% These are used when the "pubversion" option is invoked
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pubDOI{10.XXXX/YYYYYYY}
+\pubvolume{<volume>}
+\pubissue{<issue>}
+\pubyear{<year>}
+\articlenum{<number>}
+\datereceived{Day Month Year}
+\dateaccepted{Day Month Year}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% ARTICLE START
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\begin{frontmatter}
+\maketitle
+
+\begin{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
+
+
+
+Recent advances in machine learning (ML) are reshaping drug discovery. 
+Structure-based ML methods use physically-inspired models to predict binding affinities from protein:ligand complexes. 
+These methods promise to enable the integration of data for many related targets, which addresses issues related to data scarcity for single targets and could enable generalizable predictions for a broad range of targets, including mutants. 
+In this work, we report our experiences in building KinoML, a novel framework for ML in target-based small molecule drug discovery with an emphasis on structure-enabled methods. 
+KinoML focuses currently on kinases as the relative structural conservation of this protein superfamily, particularly in the kinase domain, means it is possible to leverage data from the entire superfamily to make structure-informed predictions about binding affinities, selectivities, and drug resistance.
+%Also, kinase structural, chemical, and assay data is abundant and of high quality, which is possible thanks to standardized experimental platforms that allow for seamless integration of existing measurements and testing new predictions.
+Some key lessons learned in building KinoML include: the importance of reproducible data collection and deposition, the harmonization of molecular data and featurization, and the choice of the right data format to ensure reusability and reproducibility of ML models.
+As a result, KinoML allows users to easily achieve three tasks: accessing and curating molecular data; featurizing this data with representations suitable for ML applications; and running reproducible ML experiments that require access to ligand, protein, and assay information to predict ligand affinity.
+Despite KinoML focusing on kinases, this framework can be applied to other proteins. 
+The lessons reported here can help guide the development of platforms for structure-enabled ML in other areas of drug discovery.
+
+\end{abstract}
+
+
+\end{frontmatter}
+
+
+%\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+Phosphorylation, or the transfer of an ATP-derived phosphate group to substrate proteins, lipids, or carbohydrates, is one of the most common post-translational modifications and potentiates a wide variety of intracellular signaling cascades.~\cite{Ayala-Aguilera2022, Ramazi2021} 
+This reaction is catalyzed by a class of enzymes called kinases, of which there are nearly 540 unique human proteins.~\cite{Eid2017} 
+Given the centrality of phosphorylation in growth, proliferation, motility, differentiation, and other essential biological processes, kinases are implicated in a variety of diseases and are an important drug target, particularly in oncology indications. 
+Since the approval of the first kinase inhibitor, imatinib, in 2001 through 2023, the U.S.\ Food and Drug Administration (FDA) has approved more than 80 small molecule protein kinase inhibitors.~\cite{roskoski2023pki}
+
+
+The pharmacological importance of kinases has led to their robust characterization and the generation of a vast amount of pharmacokinetic, biochemical, and structural data relating to their function and inhibition. 
+While this makes kinases an ideal protein family to interrogate with machine learning (ML) methods as drug targets, this abundance also poses a challenge to curating a high-quality data set that reflects the breadth and scope of available data while ensuring its accuracy, consistency, reproducibility, and availability.
+
+
+Both ligand-based and structure-based ML methods are nowadays commonly used in kinase drug discovery.~\cite{sliwoski2014computational, abuhammad2016innovative, vazquez2020merging, liu2023hybrid, backenkohler2023guided, gorantla2023proteins}
+Ligand-based methods rely on the "similarity-property principle" \cite{amendola2021pyrmd} stating that ligands with similar structural characteristics will display similar binding affinities to the same target. 
+Therefore, these methods require a set of compounds with known---and ideally varying---activity against a target of interest. Furthermore, using structure-activity relationships (SAR) these compounds can be improved by designing appropriate analogs.~\cite{amendola2021pyrmd, chen2007evaluation, abuhammad2016innovative} %their potency and other properties, these compounds are improved by designing appropriate analogs. \cite{amendola2021pyrmd, chen2007evaluation} 
+However, ligand-based methods do not explicitly include the 3D structural information of the protein:ligand complex. Therefore, they cannot provide direct insights into the structural features of protein:ligand molecular interactions.~\cite{liu2023hybrid} On the other hand, structure-based methods use protein:ligand 3D structural and interaction data to make binding affinity predictions.~\cite{liu2023hybrid, schaller2023benchmarking} It is hypothesized that incorporating structural data into the ML model could improve the binding affinity predictions~\cite{schaller2023benchmarking, backenkohler2023guided}, thus, potentially exceeding the performance of ligand-based methods.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%version 2%%%%%%%%%%%%
+\subsection{Why structure-based methods?}
+%Why are researchers interested in structure-based methods?
+
+Structure-based ML models use the structural information of protein:ligand complexes to predict ligand binding affinities from the ligand's interactions with the protein binding site, whereas ligand-based models use information derived only from the chemical structure of the ligand.~\cite{sliwoski2014computational, sadybekov2023computational, backenkohler2023guided}. A key difference between the two approaches is that structure-based methods are able to integrate data from related targets into a single unified model, while ligand-based methods generally do not transfer well to related targets. We hypothesize that \textbf{by training a structure-based, kinome-wide model with all compound data available for any kinase, the model will learn the physics of protein:ligand interactions well enough to explore larger areas of chemical space than ligand-based methods do.}\cite{sliwoski2014computational, sadybekov2023computational}. Furthermore, although there is more available compound affinity data than complex structure data, leveraging all available kinase data for all targets may overcome this limitation.
+
+We note that there is a long history of ML models that incorporate protein information (usually the sequence) without including the 3D structure, which also benefit from incorporating compound data for multiple targets. Two examples are drug-targeting interaction (DTI) and ProteoChemometric modeling (PCM) \cite{kimber2021deep, Backenkhler2023}.
+However, \textbf{by considering the precise interactions between the ligand and the protein binding pocket from the atomic representation, structure-based models may better capture the binding mechanisms.}~\cite{sliwoski2014computational} Including this information in ML models should improve binding affinity prediction compared to ligand-based methods
+~\cite{liu2023hybrid, schaller2023benchmarking}. Taking into account the protein:ligand interactions enables the detection of structural differences that lead to variations in binding free energies, as well as molecular differences between binding modes of ligands across a range of kinases. We hypothesize that this will lead to improved performance in optimizing ligand potency and predicting selectivity, mutational resistance, and polypharmacology. For example, \textit{Backenkohler et al}. ~\cite{backenkohler2023guided} showed improved performance in binding affinity prediction for kinase inhibitors of their structure-based model, over 3D-structure-free models such as DTI. Similarly, \textit{Luo et al}. also showed improved performance in kinase-drug binding affinity prediction of their structure-based method over structure-free methods~\cite{luo2023calibrated}.
+
+Finally, like many proteins, kinases can exist in multiple conformational states, which can be clustered into e.g., the four KLIFS states \cite{Kanev2020} or the eight Dunbrack states \cite{modi2019defining, modi2022kincore}. \textbf{The conformational dynamics of kinases may be a key to the design of effective kinase drugs, and structure-based models have the potential to encode this conformational information and use it to predict binding affinities.} This again would be a dimension missing from ligand-based methods. 
+
+
+\subsection{Overcoming the data challenges}
+%Difficulty in coming up with structures - limited amount of data in PDB and proposing new complex structures is non-trivial --
+ML, particularly deep learning (DL), models are very data greedy since they derive patterns solely based on the given training data. In order to obtain good performance a large amount of data is needed.~\cite{kimber2021deep} In the case of kinases, there are various databases available that collect kinase information including structural protein:ligand and specific annotation data. KLIFS~\cite{kooistra2016klifs}, e.g., hosts over $6,667$ PDBs of kinases and unique kinase:ligand combinations \cite{Kanev2020}. Particularly, there are currently $4,148$ unique kinase inhibitors in KLIFS. While this amount of structural data is large for a protein family, it is not enough for reliable DL applications. Therefore, structure-based ML models in the field of inhibitor design face the challenge of limited available structural data of protein:ligand complexes with experimental affinity data, especially compared to the relatively more available data for ligand-based methods.
+
+In order to exploit the full potential of ML structure-based models, structural protein-ligand data for unresolved structures needs to be generated. 
+To tackle this, there have been several initiatives focused on data augmentation and structure predictions. 
+For example, the KinCo~\cite{liu2023hybrid} data set comprises a kinase-inhibitor complex data set of $137,778$ \textit{in silico} predicted kinase:ligand structures paired with experimental binding constants. 
+The kinase structures were predicted using homology modelling, and then compounds were docked to these structures. Furthermore, \citet{schaller2023benchmarking} introduced a kinase-centric template docking workflow to augment the structurally accessible kinase-ligand space with promising performance in a benchmark study. 
+More recently, \citet{backenkohler2023guided} built on this study, and used the template docking workflow to generate structural information of all kinase:ligand pairs with available bioactivity data in ChEMBL.
+Overall, approximately $140,977$ kinase:ligand pairs were obtained and evaluated.
+Notably, the study showed a significant increase in model performance, when trained on this dataset and using the complex 3D information encoded in an E(3)-invariant GNN model.
+
+In the following sections, we report our experiences in building KinoML. KinoML is a modular and extensible framework for machine learning (ML) in small molecule drug discovery with a special focus on kinases. The purpose of KinoML is to help users conduct ML kinase experiments, from data collection to model evaluation. Note that despite KinoML's focus being on kinases, it can be applied to any protein system. Tutorials on how to use KinoML as well as working examples showcasing how to use KinoML to perform experiments end-to-end can be found \hyperlink{https://github.com/openkinome/kinoml/tree/master/tutorials}{here}. 
+
+
+In order to describe our experiences in building such a framework, we will first dive into how to obtain and deposit data from different sources in a FAIR and reproducible way, including how to preprocess the data properly. 
+Secondly, we will introduce KinoML, with a description of its main goals and object model along with example scripts explaining how to use it. 
+This will be followed by a description of how to store the information as tensors for easy ingestion in ML applications. 
+To conclude, we summarize the key learnings to conduct ML-based kinase drug discovery experiments transferable also to other areas of drug discovery.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The data journey
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The data journey to KinoData}
+In this section, we will discuss how to collect, curate, integrate, and harmonize kinase data from different sources in a reproducible way and with an emphasis on FAIR principles. These efforts resulted in \textbf{KinoData}, which is a collection of Jupyter notebooks to reliably select and curate datasets. These scripts can be found \hyperlink{https://github.com/openkinome/kinodata}{here}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IDENTIFYING AND INTEGRATING USEFUL DATA SOURCES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Identifying and integrating useful data sources in a reproducible way}
+
+High-throughput kinase-ligand binding affinity experiments are routinely conducted, generating valuable data for individual research questions but also for ML models and large-scale simulations.
+For instance, standardized assay platforms like DiscoverX\footnote{\hyperlink{https://www.discoverx.com/}{https://www.discoverx.com/}}, KinomeSCAN\footnote{\hyperlink{https://lincs.hms.harvard.edu/kinomescan/}{https://lincs.hms.harvard.edu/kinomescan/}}, and KdELECT\footnote{\hyperlink{https://www.eurofinsdiscovery.com/solution/kdelect}{https://www.eurofinsdiscovery.com/solution/kdelect}} provide experimental binding affinity values for kinase:ligand pairs. Also, regarding only kinases, there is publicly available data such as the Published Kinase Inhibitor Set 2 (PKIS2). \cite{drewry2017progress} 
+Furthermore, there are publicly available curated databases of bioactivity of molecules with drug-like properties, that are not specific to kinases, such as ChEMBL\footnote{\hyperlink{https://www.ebi.ac.uk/chembl/}{https://www.ebi.ac.uk/chembl/}}\cite{zdrazil2023chembl} or PubChem\footnote{\hyperlink{https://pubchem.ncbi.nlm.nih.gov/}{https://pubchem.ncbi.nlm.nih.gov/}}.
+
+However, proper data handling (data preprocessing) is crucial before integrating data into any pipeline. 
+This involves deduplication, unit system standardization, mislabeled entry filtering, and other data-wrangling tasks that significantly impact downstream model and simulation quality. 
+Once the data artifacts have been identified and removed, they need to be archived for provenance and reproducibility. 
+In this section, we will discuss key considerations for building a reproducible data generation process from existing biomedical resources. For this purpose, this section will cover good practices on how to collect data and also on how to deposit this data. With this in mind, we also introduce here our KinoData project \footnote{\hyperlink{https://github.com/openkinome/kinodata}{https://github.com/openkinome/kinodata}}, which consists of a series of scripts that exemplify how to reliably select and curate kinase-related data sets.
+
+
+\subsubsection{Reproducible data collection}
+
+Our journey starts with obtaining data from the chosen data source(s).
+It is a common misconception that data acquired at the project's outset will remain available and unaltered throughout the experiment's lifespan. 
+Many data repositories will undergo updates and changes, making it necessary to take proactive steps to ensure our data sources exhibit two properties essential for reproducibility: \textit{availability} and \textit{immutability}.
+These characteristics are vital to ensure that we or others can reproduce our findings in the future. 
+There are three main sources to obtain raw molecular data: online data sets, peer-reviewed publications (with supporting information), and shared files. 
+
+
+\textbf{Online data sets:} 
+Public repositories of biochemical data like ChEMBL\footnote{\hyperlink{https://www.ebi.ac.uk/chembl/}{https://www.ebi.ac.uk/chembl/}} and PubChem\footnote{\hyperlink{https://pubchem.ncbi.nlm.nih.gov/}{https://pubchem.ncbi.nlm.nih.gov/}} provide frequently updated data accessible on demand. 
+Therefore, automated retrieval through APIs does not guarantee identical results over time due to continuous changes in these databases. 
+To address this, we recommend using versioned database copies, which are often available through official download portals in various formats (e.g., SQLite, MySQL). 
+These archived versions, accessible via Digital Object Identifier (DOI) links, exemplify immutable availability. 
+If your data source lacks versioned downloads, consider creating your own local copy via APIs or web scraping, and depositing it in online archives like FigShare, Zenodo, or GitHub Releases if permissible. An example of querying human kinase inhibitor bioactivity data from a specific ChEMBL version can be found in the KinoData tutorial \textit{kinases\_in\_chembl.ipynb} \footnote{\hyperlink{https://github.com/openkinome/kinodata/blob/master/kinases-in-chembl/kinases_in_chembl.ipynb}{https://github.com/openkinome/kinodata/blob/master/kinases-in-chembl/kinases\_in\_chembl.ipynb}}. 
+
+\textbf{Peer-reviewed publications or shared files:} 
+Some data sets are deposited as supporting information in peer-reviewed publications with DOIs, such as PKIS2.~\cite{drewry2017progress} 
+Availability is ensured through the publisher, but differences in how files are provided may make automated retrieval challenging. 
+If specific data is not publicly accessible, it may be necessary to request it from another researcher (if there is a Data Availability Statement). 
+Alternatively, if files are shared through private channels like email or Slack, ensure their public deposition with a permanent URL to achieve long-term availability and immutability.  
+Another point to keep in mind is that licensing issues may be a hindrance when using data from other researchers or organizations. 
+In this case, it is recommended to directly contact the authors. Moreover, when considering which licensing scheme to use for your own data, it is recommended to use the \hyperlink{https://creativecommons.org/public-domain/cc0/}{CC0} (public domain) license \cite{stodden2009enabling}. This type of licensing allows data to be treated as if it is in the public domain, facilitating aggregation of data into other repositories, thereby promoting collaborations and knowledge sharing. 
+
+Following these recommendations when dealing with online data sets, peer-reviewed publications, or privately shared files will ensure that the data remains available and unchanged, promoting the reproducibility of your research.
+
+
+%For bigger data sets, like those coming from molecular dynamics simulations, special arrangements can be done with reproducible science initiatives ([mention here the AWS archive, GitHub glaciar, and all those mentioned in F@H backups]).
+
+%[tbd] if we want a table here, summarizing the above points?
+%Table:
+%Data source | Availability | Immutability | Automated retrieval
+%Manuscript / SI | Yes, through publisher | Yes, each publication is immutable | Endpoints for specific files can change
+%XXXX , XXX, XXX
+
+\subsubsection{Ensuring your processed data is FAIR}
+
+The FAIR principles are a set of guidelines for researchers to ensure their data is \textbf{F}indable, \textbf{A}ccessible, \textbf{I}nteroperable, and \textbf{R}eusable~\cite{wilkinson2016fair} and are key for open science. 
+Following these recommendations allows scientists to reliably access data, combine data from different sources, and ease reproducibility of results.  
+In this section, we cover the key steps to ensure compliance with FAIR guidelines once the data has been collected.
+
+
+Normally, raw data should be preprocessed before archiving it to save resources. This is particularly important when dealing with large data sets or when data is obtained from non-API sources.
+If data preprocessing is necessary (e.g., extracting data from HTML), it is essential to include the corresponding code alongside the final data set. 
+This ensures that updating the archived data only requires rerunning the preprocessing pipeline and enables the community to understand any preprocessing applied to the data. 
+Three key qualities for deposited data are a unique identifier, guaranteed long-term availability, and accessibility for both human and programmatic interfaces.
+
+The choice of where to store your data set depends on its size. 
+For \textit{small data sets} (a few megabytes), standard version control systems like GitHub can be sufficient. 
+These systems provide unique identifiers that can be accessed via URLs, typically using commit hashes or tags. 
+For \textit{medium-sized data sets} (several hundred megabytes), you can use platforms like GitHub Releases. This approach involves publishing a tagged commit as a "release" and allows you to attach the data set as a separate artifact. It is advisable to upload the data set in a compressed format, which can be done manually or automatically through Continuous Integration (CI) pipelines like GitHub Actions.
+However, it is important to always keep in mind that GitHub URLs are not guaranteed to be permanent; for example, they can disappear due to the repository being deleted by the owner. Therefore, when sharing and storing GitHub URLs, it is recommended to use platforms like Zenodo\footnote{https://zenodo.org/}  (for versioned releases and DOI assignment). 
+Finally, for \textit{very large data sets}, often exceeding the file size limits of version control systems (in the order of a few gigabytes), external cloud storage providers like FigShare\footnote{https://figshare.com/} or Zenodo are recommended. These platforms can handle large data sets and also support DOIs if needed.
+
+\subsection{Reproducible data collection and deposition example: KinoData}
+
+In this section, we illustrate our data processing pipeline---data set identification, ingestion, and deposition---with kinase inhibitor activity data information in a modular and reproducible way. 
+This is divided into three steps: first, identifying the relevant target kinases; second, collecting the compound and bioactivity data; and third, curating the database for its deposition. 
+This process will be illustrated using examples from \href{https://github.com/openkinome/kinodata/}{KinoData}. 
+
+\subsubsection{1. Data identification: what is a kinase?}
+The first step is to retrieve the kinase data of interest from the different databases.
+However, the definition of \textit{kinase} is not as straightforward as one would expect. 
+Throughout the literature, one can find several "authoritative" lists of kinases. 
+Unfortunately, the criteria used to nominate how a protein makes it to the kinase list is neither consistent nor obvious, resulting in divergent definitions of what the human kinome really represents. Of course, this also hinders the querying of kinase-related data from data sources. 
+To address this issue, we referred to several publications and the most relevant kinase-centric web-servers. 
+%We decided to archive all those definitions and study their overlaps. 
+The kinase-centric data sources studied were: 
+
+\begin{itemize}
+\item {\href{http://www.kinhub.org/}{KinHub}} is a web-based tool for interactive navigation through and visualization of human kinome data, following the nomenclature by \citet{Manning2002}. Pre-processed data from freely available sources such as ChEMBL~\cite{zdrazil2023chembl}, the Protein Data Bank (PDB) (\url{https://www.rcsb.org/}), and the Center for Therapeutic Target Validation (CTTV) were compiled, integrated, and visualized on the kinome tree.~\cite{eid2017kinmap} 
+
+\item {\href{https://klifs.net/}{KLIFS}}~\cite{Kanev2020}: The Kinase–Ligand Interaction Fingerprints and Structures (KLIFS) database collects all kinase structures and aligns, annotates, and curates them with related kinase information. KLIFS now contains over $6,667$ annotated structures, comprised of $326$ unique kinases and over $4,148$ unique ligands as of May 2024.
+
+\item {\href{http://dunbrack.fccc.edu/kincore/home}{KinCoRe}}~\cite{Modi2021} is a web resource that collects and curates all protein kinase structures from the PDB (\url{https://www.rcsb.org/}). KinCoRe assigns conformational and inhibitor type labels that reflect the diversity of the kinase conformations beyond DFG-in/out and inhibitor binding locations. %It contains structures from 278 human kinase genes comprised of 284 domains and from 57 genes from 9 model organisms.
+
+\end{itemize}
+
+Several nomenclatures exist to refer to kinases, i.e., xName \href{http://www.kinhub.org/kinases.html}{(KinHub)}, Manning's kinase classification \cite{manning2002protein}, or HUGO Gene Nomenclature Committee (HGNC) \cite{eyre2006hugo}. 
+While there are decent overlaps in the names, there is no uniquely identifying kinase naming system. 
+Therefore, it is advisable to use Uniprot identifiers as the primary search keys when combining and comparing proteins across different data sources. 
+A Uniprot "Entry name" is a unique and universal alphanumerical code assigned to a specific protein \cite{pundir2016uniprot, zaru2023uniprot}. 
+%Therefore, UniprotIDs are specially useful when combining and comparing proteins across different data sources since they provide a standardized and consistent way of referencing proteins. 
+The resulting set of human kinases, which arises from combining the different kinase definitions from the sources mentioned above, with their different nomenclature and database keys are all available in KinoData in a Jupyter Notebook stored \href{https://github.com/openkinome/kinodata/blob/master/human-kinases/human_kinases.ipynb}{here} for permanent availability.
+The notebook illustrates how to obtain this multi-source kinase data step by step, depending on several online resources.
+%, hence why we also provide a CSV file with the key information to understand these sources.
+The search and mapping resulted in around $500$ kinases per set, of which $473$ appeared in all five queried data sets (see Figure \ref{figure:kinome-definitions}.a).
+
+
+\begin{figure}[tbp]
+	\centering
+	
+	%\begin{minipage}[t]{.65\textwidth}
+	%	\textbf{(a)}
+	%\end{minipage}%
+    %\begin{minipage}[t]{.45\textwidth}
+	%	\textbf{(b)}
+	
+    %\end{minipage}%
+
+	%\begin{minipage}[t]{0.65\textwidth}
+		\centering
+		%               \textbf{(e)}
+        \includegraphics[width=0.5\textwidth]{figures/human_kinase_upset.pdf}
+	%	\includegraphics[width=1\textwidth]{figures/venn_diagram_and_kinase_structure.PNG}
+	%\end{minipage}%
+    %\begin{minipage}[t]{0.4\textwidth}
+	%	\centering
+	%	%               \textbf{(e)}
+	%	\includegraphics[width=1\textwidth]{figures/}
+	%\end{minipage}%
+
+	
+
+    \caption{\textbf{Concordance of definitions of human kinases from various sources reporting members of the human kinome.}
+    Data assembled and figure created in \url{https://github.com/openkinome/kinodata/blob/master/human-kinases/human_kinases.ipynb}.
+    Overlap of human kinases queried from different sources. %(b) Illustration of kinase architecture (3D).
+    }
+	\label{figure:kinome-definitions}    
+\end{figure}
+
+%Note that for kinase inhibition data, the standardization across data sets involves managing different nomenclatures for protein targets, small molecule encoding, different measuring experiments and non-consistent measurement unit systems. One could be tempted to standardize everything at this stage (raw data deposition), but in our experience it is preferable to leave the data as raw as possible for reusability reasons so each experiment down the line can choose how to solve these differences in a way that makes more sense to them. 
+
+
+\subsubsection{2. Data collection and curation: bioactivity data}
+
+Once the kinase target set is obtained, the next step is to obtain bioactivity measurements for these kinases from online databases or other resources. 
+For this purpose, we considered two online databases: ChEMBL \cite{zdrazil2023chembl} and PKIS2 \cite{drewry2017progress}. 
+%Note that accessing and filtering data from both databases can be easily done with KinoML, but this will be discussed later. 
+In this section, we discuss the advantages and disadvantages of ChEMBL and PKIS2, followed by a step-by-step example of how to collect and curate ChEMBL kinase data using KinoML.
+
+
+\paragraph{ChEMBL}
+\hyperlink{https://www.ebi.ac.uk/chembl/}{ChEMBL} \cite{zdrazil2023chembl} is one of the largest and most well-known databases containing bioactivity data for over $2.4$ million distinct compounds (as of May 2024) and is therefore of interest for any kinase-centric ML study. Given a kinase target set, querying bioactivity measurements in ChEMBL can be done with the UniProt ID, since ChEMBL offers a mapping from UniProt identifiers to their own internal labels (ChEMBL target IDs). 
+In ChEMBL, a target can be part of different kinds of assays, and thus different types of measurements are reported.
+For the purpose of this study, we are only interested in single protein measurements, i.e., binding assays with $K_d$, $IC50$, or $K_i$ data available.
+
+Due to technical limitations in the ChEMBL API, which rate limits big queries, we settled for querying a local copy of the database, as available through DOI \url{http://doi.org/10.6019/CHEMBL.database.33}. 
+As mentioned earlier, a local copy provides better performance and reproducibility, since it is immutable and versioned. 
+An example of how to filter and process kinase data from ChEMBL can be found in the following Jupyter Notebook from KinoData \footnote{\url{https://github.com/openkinome/kinodata/blob/master/kinase-bioactivities-in-chembl/kinase-bioactivities-in-chembl.ipynb}}.  In this specific example, the resulting data set was loaded in a Pandas dataframe which was filtered following previously published advice \cite{Kalliokoski2013, Kramer2012}. 
+Figure \ref{fig:chembl_processing} shows the number of PDBs at each step of the ChEMBL curation. Firstly, the data was grouped by protein and ligand, which resulted in $273,555$ ChEMBL measurements. We call a protein and ligand complex a system. %The entries of the `dummy' ChEMBL target (CHEMBL612545) were removed, since this is a dummy identifier for unchecked targets.
+Also, extreme affinity values (\textgreater\ 10mM or \textless\ 1fM) or measurements with unclear units were removed, resulting in $272,265$ ChEMBL measurements, as depicted in Figure \ref{fig:chembl_processing}. For systems with several measurements in the same publication, only the highest measured affinity was kept. Two final stages removed duplicates where a manuscript cites the original experimental publication and also in cases of author overlap where the same system was referenced in multiple publications. All these steps resulted in a final $211,697$ measurements as seen in Figure \ref{fig:chembl_processing}. 
+
+
+\paragraph{PKIS2}
+
+Another very popular kinase data set considered was Published Kinase Inhibitor Set 2 (PKIS2) \cite{drewry2017progress}, which is a different type of data set. 
+It is a published and static document, distributed as a spreadsheet, that does not change with time. It provides a single type of measurement (\% displacement) for the inhibitory power of a library of compounds against a panel of human kinases. The compounds are listed as simplified molecular-input line-entry system (SMILES) and the kinases are identified by \emph{name}. 
+
+However, there are several challenges and questions behind that simple scheme, such as the name being used in each assay. For example, it was not clear if it was the gene name or the protein name. To answer this question, we contacted DiscoverX, manufacturer of the KinomeSCAN assay kit used in PKIS2 to elucidate which exact constructs are behind each kinase name. DiscoverX generously provided us with a spreadsheet that contained additional information about each kinase in their kit. 
+Still, the data needed further processing to map the data in PKIS2 to the UniProt identifier of each kinase name. This allowed us to disambiguate the kinase names and provide the identifiers and sequences associated with each data point.
+%The other difficulty in this data set is the type of measurement. 
+%Percent displacement is not one of the common measurements of inhibition, but it can be mapped to one if the nature of the assay is ascertained. 
+%Since this mathematical treatment can be adapted to each study, for KinoData we decided not to convert quantities at this stage and leave the data points untouched. 
+%The next section will cover this decision in detail.
+
+\subsubsection{3. Data set deposition}
+
+Finally, once all measurements of interest for the target kinases were obtained, the data was deposited in KinoData \url{https://github.com/openkinome/kinodata}. This way, KinoData contains all steps needed to collect and deposit kinase-centric data and the data is also version controlled available.
+
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/kinodata_filtering.pdf}
+    \caption{
+    {\bf Applying an automated curation pipeline reduces error and safeguards its reliability. } 1. Measurements were grouped by their protein (ChEMBL target) and ligand (compound identifiers). A `dummy' ChEMBL target (CHEMBL612545), used to verify unchecked analyses; is removed. 2. %All measurements with unclear units (i.e. any measurement with units other than M, mM, \textmu M, nM, pM or fM) were removed. Additionally, 
+    All activities were converted from K\textsubscript{i} to pK\textsubscript{i} and extreme values (\textgreater\ 10mM or \textless\ 1fM) were removed; 3. Where a target or compound had multiple, different activity values in the same publication, only the highest pK\textsubscript{i} was retained. This step was necessary to remove unclear stereoisomer annotations and measurements taken as part of assay optimizations; 4. Citations within a publication of previously published (i.e. identical) values were removed; 5. Measurements for the same system from different publications if they share one or more authors were removed to identify truly independent pairs of measurements.
+    }
+    \label{fig:chembl_processing}
+\end{figure}
+
+
+%Figure x: Quantity of available experimental data from ChEMBL 31 after automated curation / filtering process. Left: Total number of measurements per experimental measurement class. Right: Number of measurements per kinase, indexed by ChEMBL target identifier.  [use stacked bargraph to show number of each type of measurement; use IC50, Ki, and Kd most]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HARMONIZING DATA REPRESENTATIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Harmonizing data representations: Assay classes and molecular entities}
+
+Once the data is cleaned, we need to consider multiple sources of heterogeneity in the resulting measurement data. KinoML enables users to address some of these issues directly by retaining identifier, construct, and available assay condition in its data objects. However, other concerns will need to be considered by users when curating data sets and building models. Here we summarize some kinase and inhibitor-specific considerations for users to contemplate.
+
+\paragraph{Kinase target considerations}
+Standardizing the kinase target data requires accounting for disparate naming conventions and, where possible, retaining relevant experimental technical information that may influence assay results.
+\begin{itemize}
+\item {\bf Identifier disambiguation:} The identifiers that map the gene product assayed to the source protein sequence may differ between data sources. For example, ChEMBL disambiguates target proteins using Uniprot IDs. In contrast, the PKIS2's KinomeScan assay uses National Center for Biotechnology Information (NCBI) Accession Numbers to map to protein sequences but the percentage displacement measurements are classified by DiscoverX gene symbols which closely conform to HGNC gene names. We retain both identifiers in our PKIS2 \texttt{DatasetProvider} object, discussed later. Cross-referencing these target identifiers may require querying additional database resources. 
+\item {\bf Construct differences:} The protein constructs are the specific forms of the peptide utilized experimentally may differ both from the canonical endogenous protein and between studies. Mutant constructs or those containing different functional domains may demonstrate distinct small molecules binding affinities. Full-length kinase constructs are not generally synthesized for \textit{in vitro} biochemical assays. Instead, the conserved, catalytically active portion of the protein known as the kinase domain is often generated.~\cite{diwanji2019full} Post-translational modifications to the underlying construct, particularly phosphorylation in the case of kinases, can also influence intrinsic activity.
+\item {\bf Assay conditions:} Assay conditions can also influence a target's form and function and the resulting assay measurements. For example, the experimental pH and redox conditions can determine whether adjacent cysteine residues form disulfide bridges.~\cite{ruiz2022disulfide} Similarly, the presence or absence of other proteins (e.g., cyclins in the case of cyclin-dependent kinases) may modulate construct catalytic activity. Finally, the use of a metal cofactor can also alter binding affinity; endogenously magnesium is the preferred kinase cofactor to catalyze phosphorylation, but other divalent ions like manganese and zinc may also be used experimentally.~\cite{knape2017cofactor}
+\end{itemize}
+
+\paragraph{Ligand considerations}
+Harmonizing ligand data poses challenges analogous to the kinase targets while along unique concerns, including a generally less standardized identifier generation process and the need to remedy of non-canonical or degenerate molecular representations.
+\begin{itemize}
+\item {\bf Identifier disambiguation:} As with the targets, which ligand identifier is used may vary across data sources. PKIS2 provides compound names generated by suppliers or manufacturers (e.g., GlaxoSmithKline). For drugs without PKIS-supplied names, SMILES strings are used instead. In contrast, ChEMBL uses its own ChEMBL identifiers. In general, small molecule nomenclature depends on the stage of development to which the drug was advanced. Substances that are strictly tool compounds for preclinical applications may possess only a manufacturer-generated internal identifier. An investigational agent that advances to clinical trials may be granted a standardized, generic international non-proprietary name (INN) by the World Health Organization.~\cite{debruyne2018inn} Marketed drugs may also possess brand names that can vary by geography.
+\item {\bf Canonical representation:} Once ligand identity has been ingested, a representation amen\-able to ML applications must be obtained. SMILES strings are perhaps the most commonly used molecular representation, but they are not unique identifiers. The same molecule can possess multiple valid SMILES string representations. As such, cheminformatics packages like \texttt{RDKit} also implement canonical SMILES string generation to enable consistency when determining which of the possible representations should be used. In both ChEMBL and PKIS2, mapping from identifiers to sequences is simplified by the provision of SMILES strings by each database directly. In the case of molecules with chiral centers, some ligands may require further stereochemical specification or may even exist in multiple distinct configurations in the case of racemic mixtures. Other techniques for representing molecules in data sets include molecular fingerprinting, which encodes chemical information in a 1D vector, or graph structure, where constituent atoms and their corresponding bonds are represented as vertices and edges, respectively.~\cite{david2020cheminform}
+\item {\bf Assay conditions:} Molecules may possess different salt forms, whose solubilities and dissolution rates can impact the real administered dose. Additionally, a ligand's ionization state depends on the pH of the solution and the pKa of the ligand, and its tautomerization states can be influenced by temperature, solvent, pH, and the presence or absence of catalytic acids or bases.~\cite{lu2021ionization}
+\end{itemize}
+
+% Previously, we'd discussed this being another bulleted section called "Assay information." However, since we talk about some of these assay considerations already in the Target and Ligand section, it seemed to make sense to me to create a separate section instead called "Retaining and modeling assay information." Happy to revert to what we discussed previously if that's still preferrred and make these two bullets in an "Assay information" paragraph.
+% \paragraph{Assay information}
+\subsubsection{Retaining and modeling assay information}
+
+\paragraph{Assay conditions}
+
+As discussed above, a variety of assay conditions can alter the underlying biochemical properties of a ligand and its target and influence their measured affinity. When modeling the outcomes of these assays, these experimental parameters should be treated as covariates within the model. For example, pH influences, among other things, the presence of disulfide bridges among the cysteine residues of the target and potential ligand ionization and tautomerization. All of these factors may significantly impact the measured affinity of the target for the ligand; hence, an otherwise identical system assayed under acidic and basic conditions could produce drastically different results. The pH at which the ChEMBL and PKIS2 assays were conducted (pH 7) are captured for the processed data sets as \texttt{AssayConditions} in the KinoML object model, which is discussed in further detail in the next section.
+
+% added at John's request
+\begin{figure}[bph]
+    \centering
+    \includegraphics[width=0.45\textwidth]{figures/measurement_piechart.png}
+    \caption{\label{figure:piechart}
+    {\bf Bioactivity assay measurement classes vary by and within data set. } While both ChEMBL and PKIS2 possess kinase bioactivity assay data, the experimental quantity measured differs. The \texttt{kinoml.data sets.chembl} object contains $159,823$ IC\textsubscript{50}, $15,578$ K\textsubscript{i}, and $11,412$ K\textsubscript{d} measurements. The \texttt{kinoml.data sets.pkis2} object contains $261,870$ percentage displacement measurements.}
+\end{figure}
+
+\paragraph{Assay class}
+
+The assays used to assess binding across different data set may measure distinct quantities. For example, some assays may provide direct readouts of binding affinities (K\textsubscript{d}), indirect biochemical readouts of apparent inhibition constants (K\textsubscript{i}), concentrations representing biochemical inhibition (IC\textsubscript{50}), or other readouts of binding (e.g., single-concentration \% displacement for a KinomeSCAN assay). The relative frequency of these measurement types in the processed PKIS2 and ChEMBL data sets is shown in Figure \ref{figure:piechart}. One approach to modeling similar but non-identical biochemical assay measurements would be deterministically converting the outcomes to a single, unified measurement type on which the model is trained.
+
+Alternatively, rather than transforming the underlying data to a single, standardized measurement type prior to training an ML model, the model's loss function can be adapted to account for differing measurement classes and conform the output to the input for the purposes of optimization. For example, in the case of a neural network model, the second to last layer could be used to predict a thermodynamic quantity such as Gibbs free energy ($\Delta G$) that has a deterministic relationship to the various measurement classes. As long as this conversion function in the final layer is differentiable, the ability of the network to backpropagate and effectively learn parameter weights remains intact.
+
+
+% see kinoml object model notebook text https://openkinome.org/kinoml/notebooks/kinoml_object_model.html for some text
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% From object model to tensors and structures: featurization schemes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{From data to numbers: KinoML}
+
+To account for the experimental diversity across kinase inhibitor binding affinities, we devised an object model to represent molecular entities, their associated measurements, and the context and provenance relevant to these measurements. %, aiming to account for these issues in a generally applicable manner.
+KinoML \footnote{\url{https://github.com/openkinome/kinoml}} is a modular and extensible framework for ML in small molecule drug discovery, with a special focus on kinases. KinoML enables users to easily:
+\begin{itemize}
+    \item  Access and download data: from online data sources, such as ChEMBL or PubChem, as well as from their own files, with a focus on data availability and immutability. Represented by step 1 in Figure \ref{figure:kinoml-worflow}.
+    \item Featurize data: so that it is ML readable. KinoML offers a wide variety of featurization schemes (molecular representations that are ML-readable), from ligand-only to ligand:kinase complexes. Represented by step 2 in Figure \ref{figure:kinoml-worflow}.
+    \item Run structure-based and structure-free experiments: using KinoML's workflows and ML architectures, a model can be easily trained and tested. These workflows have a special focus on reproducibility. Represented by step 3 in Figure \ref{figure:kinoml-worflow}.
+\end{itemize}
+Currently, the main purpose of KinoML is to help users curate and process kinase data so that it can be used to conduct ML kinase:ligand binding affinity prediction experiments. Tutorials on how to use KinoML, as well as working examples showcasing how to perform experiments end-to-end can be found in the KinoML GitHub repository \footnote{\url{https://github.com/openkinome/kinoml/tree/master/tutorials}}. Note that despite KinoML's focus on kinases, it can be applied to any protein system. For more detailed usage instructions, please refer to the Documentation (\url{https://openkinome.org/kinoml/}). \\
+Figure \ref{figure:kinoml-worflow} displays a typical workflow using KinoML. First, the data is ingested using \texttt{DatasetProvider}, which provides a list of \texttt{Measurements}. Each measurement contains: the activity \texttt{values} of the measurement, information about the assay conditions of the experiment (\texttt{AssayConditions}), and other \texttt{Metadata} for reproducibility purposes. Also, each measurement is associated with a \texttt{System}, which contains the information about the specific \texttt{Protein} and \texttt{Ligand}. The protein and ligand information can be featurized (molecular representation), in such a way that their molecular representations and their associated \texttt{values} can be used for ML applications. Furthermore, KinoML has the \texttt{kinoml.ml} module which allows users to easily train and evaluate several integrated ML models.
+
+\begin{figure*}[ht]
+    \centering
+	%\centering
+	
+	%\begin{minipage}[t]{.5\textwidth}
+		%\textbf{(a)}
+	%\end{minipage}%
+    
+    %\begin{minipage}[t]{.45\textwidth}
+	%	\textbf{(b)}
+	%\end{minipage}%
+
+	%\begin{minipage}{0.8\textwidth}
+	%	\centering
+		%               \textbf{(e)}
+	\includegraphics[width=0.8\textwidth]{figures/fig_1_kinomltechpaper_v5.pdf}
+	%\end{minipage}%
+    %\begin{minipage}[t]{0.4\textwidth}
+	%	\centering
+	%	%               \textbf{(e)}
+	%	\includegraphics[width=1\textwidth]{figures/}
+	%\end{minipage}%
+
+	
+
+	\caption{\textbf{KinoML workflow from data acquisition to featurization}
+    The data is ingested with \texttt{DatasetProvider} (step 1), which provides a list of \texttt{Measurements}, where each has a \texttt{System} and a list of\texttt{Values} associated with it. The \texttt{System} information can then be featurized (step 2). Finally, it is possible to use KinoML to easily run structure-based experiments with KinoML's implemented  ML models (step 3). Colors represent objects of the same class. }
+	\label{figure:kinoml-worflow}    
+\end{figure*}
+
+KinoML is able to achieve the workflow presented in Figure \ref{figure:kinoml-worflow} thanks to its object-oriented modular design. The following section provides a more detailed explanation of the object model used in KinoML.
+
+\subsection{KinoML's object model}
+
+%\begin{figure}[tbp]
+%    \centering
+
+%    \includegraphics[width=0.9\textwidth]{figures/object_model_new.png}
+%    \caption{\label{figure:kinoml-object-model}
+%    {\bf The KinoML object model provides access to binding affinity data in the context %of machine learning for small molecule drug discovery.}
+%    The DatasetProvider is the central object for storing all relevant information of a data set. It is essentially a list of Measurement objects, which contain the measured values (singlicate or replicates), associated with a System plus experimental AssayConditions. A System is a list of MolecularComponent objects; usually a Protein and a Ligand. Featurizers will use the input of the MolecularComponents to represent the System in different formats for machine learning tasks, e.g. a Ligand as molecular fingerprint. Note that objects of the same color belong to the same KinoML class.
+%    }
+%\end{figure}
+
+KinoML allows users to easily transform molecular systems and their measurements into an ML-compatible format, typically numerically through single or multi-dimensional tensors. To achieve this, the first step is to funnel the clean and processed data into KinoML. This is achieved via the \texttt{DatasetProvider} class, depicted in red in Figure \ref{figure:kinoml-worflow}. \texttt{DatasetProvider} can filter and extract data from ChEMBL and PKIS2 csv-files. An example of how a ChEMBL csv file should look like can be found \hyperlink{https://github.com/openkinome/kinodata/blob/master/data/human_kinases_and_chembl_targets.chembl_33.csv}{here}. This file is also the default kinase ChEMBL csv file in KinoML, so if no url or csv file is provided, then it will use this file obtained from ChEMBL v33. \texttt{DatasetProvider} then reads the ChEMBL or PKIS2 csv-files, processes the data based on UniprotIDs, and extracts their corresponding pIC50, pK\textsubscript{i}, pK\textsubscript{d}, and percentage displacement measurement values. If the user does not want to use the whole dataset, they can specify the UniprotID of the protein(s) of interest, as well as the type of measurement(s) they are interested in ("pIC50", "pKi" and/or "pKd"), and well as the sample size in case they do not want to use all entries of the dataset. 
+
+Once the data is passed through \texttt{DatasetProvider}, the data is converted into a list of \texttt{Measurement}s, which is colored in green in Figure \ref{figure:kinoml-worflow}. Each \texttt{Measurement} has an associated array of \texttt{values}. These values are the different bioactivity measurements that the user wants to work with. The bioactivity measurements that KinoML can work with are: $pIC50, pK_{i}, pK_{d}$. Therefore, the array of \texttt{values} will be part of the numbers that the ML model will work with, specifically they will be the \texttt{y} values in Figure \ref{figure:kinoml-worflow}. Each measurement also has \texttt{AssayConditions} and \texttt{Metadata} objects associated with it. The \texttt{AssayConditions} contains biochemical information regarding the experimental assay from which the measurement was obtained, such as pH or concentration values. The \texttt{Metadata} contains information for data provenance and reproducibility, such as the year the measurement was taken or the measurement units. 
+
+Each \texttt{Measurement} is also associated with a \texttt{System} (purple box in Figure \ref{figure:kinoml-worflow}), which specifies the actual protein and ligands, studied to achieve this measurement. %Therefore, each \texttt{System} is composed of a list of \texttt{MolecularComponent}s, represented in blue in Figure \ref{figure:kinoml-object-model}.
+% The \texttt{MolecularComponent} class allows KinoML to store molecular representations, names, and additional metadata of kinases (proteins) and ligands. 
+Therefore, the types of molecular components that KinoML can handle are: 
+
+\begin{itemize}
+    \item \texttt{Ligand}: Ligands (small molecules with certain activity for a target) are encoded as objects within KinoML thanks to the \texttt{Ligand} class. The \texttt{Ligand} is based on the OpenFF-Toolkit \cite{boothroyd2023development} \texttt{Molecule} object, which can be accessed via the molecule attribute. This allows usage of OpenFF-Toolkit Molecule methods, including conversion to other toolkits, e.g. RDKit \cite{landrum2013rdkit} and OpenEye (\url{https://www.eyesopen.com/}). \texttt{Ligand}s can be directly initialized via SMILES. %How to initialize a \texttt{Ligand} via SMILES, as well as how to access its metadata, name, and molecular structure is depicted in the code snippet from Figure \ref{figure:ligand_object}.
+    \item \texttt{Protein}: KinoML provides two types of protein objects: \texttt{Protein} (applicable to all proteins) and \texttt{KLIFS\-Kinase} (which allows access to information from the kinase-specific KLIFS database). Similar to \texttt{Ligand}, proteins can be directly or lazily initialized. Again, the molecular structure is accessible via the \texttt{Molecule} attribute. Both protein objects support two toolkits: MDAnalysis (\url{https://www.mdanalysis.org/}) and OpenEye (\url{https://www.eyesopen.com/}), which can be specified via the toolkit argument.  Another important attribute of proteins is their \texttt{sequence}. Note that depending on the desired featurizer, a molecular structure may not be required. For example, in the case of OneHotEncoding only the sequence is necessary. Hence, one can also initialize \texttt{Protein} and \texttt{KLIFSKinase} using sequence identifiers only, e.g. UniProt ID or NCBI ID. 
+    %This is always done lazily, so the sequences will be fetched from the respective resource on the first call of the sequence attribute. \texttt{Protein} and \texttt{KLIFSKinase} inherit their sequence-related functionality from the \texttt{AminoAcidSequence} object in \texttt{kinoml.core.sequences}, which allows for further customization of sequences, e.g. mutations. For more details have a look at the \texttt{AminoAcidSequence} class in the respective section of the KinoML API documentation.
+\end{itemize}
+    
+Both, \texttt{Ligand} and \texttt{Protein},  are encapsulated into a \texttt{System}, as depicted in Figure \ref{figure:kinoml-worflow}. This allows KinoML to store all molecular components for a given array of activity \texttt{values}. The \texttt{System} object can contain just a \texttt{Ligand} in case of a purely ligand-based model or featurization, but it can also contain a \texttt{Protein}. Therefore, KinoML has implemented three types of systems: \texttt{LigandSystem}, \texttt{ProteinSystem}, and \texttt{ProteinLigandComplex}.
+
+
+
+%\begin{figure}[!ht]
+%	\centering
+	
+%	\begin{minipage}[t]{1.\textwidth}
+%		%\textbf{(a)}
+
+ %\end{minipage}%
+    
+    %\begin{minipage}[t]{.45\textwidth}
+	%	\textbf{(b)}
+	%\end{minipage}%
+
+	%\begin{minipage}[t]{1.\textwidth}
+	%	\centering
+		%               \textbf{(e)}
+		%\includegraphics[width=1\textwidth]{figures/ligand_class_kinoml_techpaper.png}
+	%\end{minipage}%
+    %\begin{minipage}[t]{0.4\textwidth}
+	%	\centering
+	%	%               \textbf{(e)}
+	%	\includegraphics[width=1\textwidth]{figures/}
+	%\end{minipage}%
+
+	
+
+	%\caption{\textbf{Code snippet working with KinoML ligand object.}
+    %KinoML ligand objects can be initialised with a SMILES string. This creates a \texttt{Molecule} OpenFF object, whose name and molecular structure can be easily accessed, as depicted here.} 
+	%\label{figure:ligand_object}    
+%\end{figure}
+
+\subsubsection{KinoML Featurizers}
+%In order to predict the potency values from protein:ligand complexes, 
+KinoML provides convenient functions for transforming molecular data into tensors for training models in ML applications. The class \texttt{kinoml.features} has several featurizers implemented, for ligands, proteins, and protein-ligand complexes. Examples of these featurizers are: \texttt{MorganFingerprintFeaturizer}, \texttt{One\-Hot\-SMILES\-Featurizer} or \texttt{OEProteinStructureFeaturizer}. In a nutshell, the \texttt{MorganFingerprintFeaturizer} encodes the atom groups of the ligand into a binary vector with length and radius as its two parameters. One hot encoding consists of transforming an array into 0 and 1s, so the \texttt{OneHotSMILESFeaturizer} converts the SMILE string representation of a molecule into a one-hot encoding. Finally, the \texttt{OEProtein\-Structure\-Featurizer} uses the OpenEye toolkit to prepare a protein structure (modeling missing loops, building missing side chains, etc.) to make the structure ready for docking or to run simulations. 
+A comprehensive explanation of these different featurization schemes can be found in the teaching platform TeachOpenCADD \cite{Backenkhler2023}. Furthermore, KinoML has ``featurization pipelines'', which are containers for multiple featurizers. This architecture allows for running several featurizations (which depend on each other) in a pipeline to retain as much information from the protein:ligand complex as possible. E.g. given a featurization pipeline where featurization $A$ is followed by featurization $B$, this would mean that feature $X$ from featurizer $A$ can be concatenated with feature $Y$ from featurizer $B$ to form the resulting feature $XY$. Figure \ref{fig:featurization} shows a schematic representation of a featurization pipeline applied to a set of kinases and ligands. In this figure, the kinase ABL1 and ligand erlotinib are highlighted to exemplify how the featurization pipeline works in KinoML. In this case, the kinase and ligand are featurized ($x$ value) and they are associated with their corresponding affinity (e.g. $pIC50$) value ($y$ value). These $x$ and $y$ values (in combinations with others) can then be used to train an ML model. However, it is important to note that although merging different featurizations into pipelines is essential for the modularity of the framework, this also leads to an increased memory consumption when permanently storing all features generated by the different featurizers of the pipeline. Hence, an option to only store the last featurization for each system is introduced. Jupyter Notebooks showcasing the different featurizers are available within KinoML and a guide on how to use each of them can be found at \url{https://github.com/openkinome/kinoml/tree/master/tutorials/getting_started}.\\
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=.8\textwidth]{figures/kinoml_tech_paper_fig_2_v4.pdf}
+    \caption{\label{fig:featurization}
+    \textbf{Scalable and customizable pipelines allow featurization of ligand and protein information in a modular and extensible fashion.}
+    This is a schematic example of a KinoML workflow from data acquisition to its use in an ML framework. It is the same workflow as depicted in Figure \ref{figure:kinoml-worflow}. First, in step 1) a ChEMBL csv file is read by \texttt{DatasetProvider}, which converts the csv file into a dataframe with all ligand-kinase pairs with their respective binding affinity values of interest. In this case, the values of pIC50, pK\textsubscript{i}, and pK\textsubscript{d} were stored in the dataframe for each pair. Here, we will only focus on the kinase-ligand pair highlighted: ABL1 and Erlotinib respectively. Proceeding to step 2), the kinase and ligand are featurized with different featurizers.  The featurizer transforms the information of the system's components into numerical arrays, $x$. Here, the ligand and protein components are transformed into fingerprint and one-hot-encoded sequence representations, respectively. Similarly, the binding affinity value associated with this kinase-ligand pair is represented as "y",  and it is the corresponding affinity value for "x". Finally, as depicted in step 3) these "x" and "y" values are ready to be used for an ML model, and they can be exported to the desired ML framework and saved to disk for later usage. Note that several featurizers already have been implemented providing diverse encoding possibilities for ligands, proteins, and protein:ligand complexes. The modular design of KinoML allows for straightforward design of new featurization pipelines.}
+\end{figure*}
+
+
+\paragraph{\textbf{Structural representations}}
+%In the case of molecular systems containing a small molecule and protein, a desired output may also be the modeled protein:ligand complex to allow for automated setup of molecular simulations.
+KinoML allows the user to easily apply docking pipelines to protein:ligand systems. KinoML has interfaces to several docking and template docking methods, that allow users to prepare protein structures and to dock small molecules into their binding sites. The docking strategies currently covered within KinoML use OpenEye \cite{oedocking} or Schrödinger software (\url{https://newsite.schrodinger.com/}). \footnote{Note, that a valid license for at least one of the two is needed to use KinoML docking capabilities. As of \today, OpenEye offers to apply for free academic licenses.} Structural featurizers can output the resulting protein in PDB format and a prepared and/or docked small molecule in SDF format.
+
+\paragraph{Docking algorithms in KinoML} Docking is a computational molecular modeling technique used to predict the preferred binding orientation or pose of a small molecule (ligand) within a binding site on a target protein. \cite{morris2008molecular} Docking is classically a two-step process of positioning and scoring the ligand within the binding site to suggest the most energetically favorable binding mode. This can provide valuable insights into the structure activity relationship and key protein:ligand interactions. However, issues such as inaccurate scoring functions and the flexibility of both ligands and proteins can limit the accuracy of docking predictions. Template docking, which uses known ligand-protein complexes to guide the docking process, can help address some of these limitations by providing a more reliable framework for predicting binding poses.
+
+For systems with one protein and one ligand, the docking pipelines implemented in KinoML are: 
+\begin{itemize}
+    \item OpenEye FRED (Fast Rigid Exhaustive Docking): this docking method rapidly explores ligand conformations and orientations within the binding site. This is known as a standard docking protocol.
+    \item OpenEye Hybrid: this docking method can use either a single receptor structure or multiple structures of the target protein. For single structure docking, it requires the receptor and ligand database. For multiple structures, it requires all receptor files and the ligand database. Hybrid focuses on leveraging multiple protein structures to improve docking accuracy.
+    \item OpenEye POSIT: this pose-prediction tool assumes similar ligands bind similarly \cite{posit}. It selects the best docking method for a ligand and estimates the probability that the pose is within $2.0$ \AA \space of the actual pose. POSIT uses known bound ligands to guide docking and optimize geometry, focusing on the accuracy of the predicted binding pose.
+    % https://www.schrodinger.com/science-articles/docking-and-scoring
+    \item Schrödinger Glide~\cite{friesner2006extra}: employs hierarchical filters and grid representations for ligand pose scoring.
+    %need to change this last definition????
+\end{itemize}
+
+
+Listing 1 illustrates how to apply KinoML's featurization \texttt{Pipeline} to perform docking on a ligand:kinase system. In this example, the protein is loaded by specifying the UniprotID and the ligand is initialised via SMILES. Then, the most suitable PDB structure (ligand binding mode) to dock into is found with \texttt{Most\-Similar\-PDB\-Ligand\-Featurizer}. Template docking is a popular docking technique that centers around utilizing the pose information of the template ligand as a guide for predicting the binding mode of the target ligand. For this purpose, \texttt{MostSimilarPDBLigandFeaturizer} is implemented within KinoML, which finds the most suitable structure for docking in the PDB based on ligand similarity. This is particularly useful for larger sets of ligands, for which manually specifying the most suitable PDB structure to dock into would be very time consuming. \texttt{MostSimilarPDBLigandFeaturizer} allows the user to choose from several similarity metrics: fingerprints, most common substructure, and OpenEye's and Schrödinger's shapes. Then, as exemplified in Listing 1, once the most suitable structure to dock into has been found, the docking on this pose is run with \texttt{OEDockingFeaturizer}. Therefore, with KinoML a molecular system can be initialized and featurized in just a few lines of code.
+
+%Note that KinoML allows the user to combine several featurizers using the tool \texttt{Pipeline}. For example, a user can easily obtain the most suitable PDB structure to dock into with \texttt{MostSimilarPDBLigandFeaturizer} and then run docking on this pose with \texttt{OEDockingFeaturizer}, with just a few lines of code as exemplified in Listing 1. 
+
+
+\begin{lstlisting}[style=mystyle, language=Python, caption={Code snippet showing how to use the KinoML featurization pipeline to apply several featurizers on a system.}, label=lst:featurizers]
+from kinoml.core.ligands import Ligand
+from kinoml.core.proteins import Protein
+from kinoml.core.systems import ProteinLigandComplex
+from kinoml.features.core import Pipeline
+from kinoml.features.complexes import MostSimilarPDBLigandFeaturizer, OEDockingFeaturizer
+
+#initialize system
+systems = []
+protein = Protein(uniprot_id="P04629", name="NTRK1")
+ligand = Ligand(smiles="C1CC(N(C1)C2=NC3=C(C=NN3C=C2)NC(=O)N4CCC(C4)O)C5=C(C=CC(=C5)F)F",
+                name="larotrectinib")
+system = ProteinLigandComplex(components=[protein, ligand])
+systems.append(system)
+
+#define featurization pipeline
+featurizer = Pipeline([
+    MostSimilarPDBLigandFeaturizer(similarity_metric="fingerprint"),
+    OEDockingFeaturizer(output_dir=user_cache_dir() + "/docking_pipeline", method="Posit"),
+])
+
+#run featurizerp pipeline on the system
+systems = featurizer.featurize(systems)
+
+\end{lstlisting}
+
+For a more detailed explanation of all the featurizers implemented within KinoML and a guide on how to use each of them, please refer to the following tutorial folder: \url{https://github.com/openkinome/kinoml/tree/master/tutorials}. In this folder you will find several notebooks showcasing KinoML featurization capabilities. Overall, KinoML's object model allows users to easily fetch data from ChEMBL or PKIS2 data sources and then to featurize this data so that it can be used for ML purposes.
+
+
+\subsection{Exposing tensors to machine learning frameworks}
+
+The featurization of the molecular components are represented as tensors. The primary aim of storing these molecular feature tensors is to ensure they can be easily accessed and reused for training and evaluating machine learning models. Archiving these tensors facilitates reproducibility and allows for consistent benchmarking across different studies.
+
+Machine learning feature tensors should be kept on disk for archival, reusability, and reproducibility of the trained networks. These tensors can be stored in a platform-agnostic way as long as the corresponding adapters to popular machine learning frameworks are in place.
+The chosen output format should offer high-performance read and write access, without hindering the flexibility to support heterogeneously shaped tensors. 
+Given the expected tabular nature of the data and its diversity in the KinoML pipelines, Parquet files (\url{https://parquet.apache.org/}) were used to store the feature tensors, which have been proven to be a efficient and flexible format, allowing nested column data and compression techniques specific to each column. The Parquet format is also a free and open source, making it a good candidate for portability due to its support in different programming languages and machine learning frameworks.
+
+%\subsubsection{Using NumPy}
+
+Our first approach was to serialize the featurized tensors to a Numpy array. However, Numpy arrays cannot be used for data with heterogeneous shapes. 
+
+
+%Therefore, we dropped the Numpy-only design requirement and chose another data structure with better support for disk serialization. 
+
+
+
+%This method exhibited exceptional performance for both write and read access. However, it introduced a significant limitation: all elements in the array must have the same shape.
+%Since some featurization schemes might produce heterogeneous shapes (e.g. a featurizer based on the number of atoms of a molecule will generate tensors of different shapes), this was a severe shortcoming. Therefore, we needed to either pad all included tensors to fit the largest dimensions present in the data set, or devise a different strategy.
+
+%To enable this, we considered the Numpy NPZ format, which is essentially a Zip folder containing NPY files. Numpy provides a dictionary-like interface to NPZ containers, which allows for arbitrary access to each individual NPY-encoded array. However, in order to enable any number of differently sized tensors to be saved per entry, each entry needs to be subsequently saved as its own NPZ container, and the requirement of pre-processing the indices into a specifically formatted key and the random access performance of the Zip file led us to undesirable IO-loading overheads that made model training extremely slow.
+
+
+Therefore, we dropped the Numpy-only design requirement and chose another data structure with better support for disk serialization. The awkward-array project provides a Pythonic interface to ragged arrays (tensors composed of arrays of varying dimensions) with acceptable performance for our domain. By using awkward-arrays, we could leverage Parquet files for storage. Parquet's compatibility with awkward-arrays addressed the limitations of our earlier attempts by enabling efficient serialization of ragged arrays. Moreover, Parquet's flexibility allowed us to store arbitrary metadata next to each data set entry, providing extensibility for future needs.
+
+Using ragged arrays allowed us to address the challenge posed by heterogeneous tensor shapes, and they are a good balance between performance and flexibility. This design choice ensures efficient read and write access while supporting diverse featurization schemes. However, this approach does add an extra layer of complexity into the data handling and an increased storage cost.
+
+% Next-to-data Metadata is a powerful ally that we might not be using fully. Explain possibilities. 
+%Another advantage of using ragged arrays is the untapped potential of next-to-data metadata. This capability allows for the inclusion of additional information, such as provenance details or specific featurization parameters, enhancing the overall contextual understanding of the stored tensors and facilitating reproducibility. Overall, exploring and fully utilizing next-to-data metadata can open up avenues for improved interpretability, collaboration, and adaptability of the stored machine-learning-ready feature tensors.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Ensuring reproducible molecular machine learning research studies
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Ensuring reproducible molecular machine learning}
+
+Throughout the different steps of this data journey to build KinoML, we tried our best to ensure every action could be reproduced at a later point in the future. This section will consolidate each of these "checkpoints" to ensure reproducibility that are scattered across the manuscript into a list of key ideas.
+
+\begin{itemize}
+
+%\item \textbf{Annotate raw data sources}: annotate the origin of your raw data and include details such as the acquisition date or version information, if possible. Also, secure and back up the raw data without modifications to ensure that the starting point of your research is well documented.
+
+
+\item \textbf{Re-executable data manipulation}: ensure that every programmatic manipulation of the data is re-executable. Always eliminate machine-dependent states and isolate and freeze execution environments, including by documenting the dependencies and versions of libraries. It is also important to use relative paths and to document options and non-obvious code blocks. Furthermore, ensure determinism by fixing random seeds across all libraries and runtimes, this step guarantees that random processes, such as data splitting or model initialization, remain consistent across different executions. Lastly, make sure to test in other computers or, even better, use automated pipelines to ensure reproducibility over time.
+
+%\item Every data transformation has an output. If this operation expensive, think about storing the data artifact on disk (and not just as a transitory object in-memory). If you want to do this, ensure the artifacts can be loaded across the supported execution environments! Not only operating systems, but IO libraries versions, frameworks or even programming languages.
+%\item\textbf{Data transformation and artifact storage}: every data transformation has an output. If a particular operation is computationally expensive, consider storing the data artifact on disk (and not just as a transitory object in-memory). When storing artifacts in this way, ensure the artifacts can be loaded across the supported execution environments. Do not only take into account operating systems, but also IO libraries versions, frameworks, and even programming languages. This prevents compatibility issues and facilitates the seamless loading of data artifacts.
+
+\item\textbf{Ensure consistency in model building and initialization}: Ensure that models are being built in the same way, to ensure consistent reproducible results. In order for users to build featurization pipelines and train models with KinoML, they will just need to modify a hyperparameter file where all featurization and model details will be specified. This way, users can quickly compare if parameters are consistent across models.
+
+\item\textbf{Ensure consistent and traceable training operations}: It is important to ensure that splitting, batching, and random seeds are consistent during benchmarking and setup. For non-random algorithms, ensure deterministic results to maintain model consistency. In KinoML, this will be specified in a hyperparameter file so users can easily check the parameters they have inputted and ensure they are consistent across runs. 
+
+\item\textbf{Utilize MLOps platforms to track development progress and ensure all training and results are recorded}: MLOps platforms are tools and frameworks designed to manage the end-to-end machine learning lifecycle, including development, deployment, monitoring, and governance. Utilizing these platforms helps ensure that there is a record of all training and results, key for consistency checks and reproducibility. Examples of MLOPs platforms are TensorBoard \footnote{\href{https://www.tensorflow.org/tensorboard}{https://www.tensorflow.org/tensorboard}} or Weights \& Biases \footnote{\href{https://wandb.ai/site}{https://wandb.ai/site}}.
+
+\item\textbf{Standardize evaluation protocols for ML models}: To ensure valid comparisons and observable improvement in model construction, it will be important to generate a standard pipeline for evaluating model results. This includes having a consistent metric (e.g., accuracy, precision, recall, F1-score, AUC-ROC) for evaluating all models, uniform data splits for evaluating different models or to standardize the process of analyzing model errors and misclassifications.
+
+%\item\textbf{Choosing an appropriate loss function for your data and model}: 
+
+\end{itemize}
+
+\section{KinoML example of end-to-end usage}
+
+KinoML can already be used to run binding affinity experiments, from data curation to affinity prediction using one of KinoML models. In the KinoML documentation we provide examples of how to run experiments end-to-end using KinoML. Detailed examples of this can be found \hyperlink{https://github.com/openkinome/kinoml/tree/master/tutorials/experiments}{here}. KinoML is build in such a way that the user only needs to change the parameters of two hyperparameter files, one contains all the featurization pipeline information, and the other one contains the model training information. 
+
+The featurization hyperparameters file contains information such as the dataset provider, the measurement types of interest, the sample size or the featurizers that the user wants to apply on the data. On the other hand, the model training hyperparameters file contains fields such as the model name, number of epochs or batch size. This way, users only need to modify these files accordingly, and follow the same workflow as specified in the \hyperlink{https://github.com/openkinome/kinoml/tree/master/tutorials/experiments}{tutorials} to run any experiment on interest.\\
+
+Furthermore, KinoML has already been used in  publications. For example, Backenköhler et al. \cite{backenkohler2023guided} and Schaller et at. \cite{schaller2023benchmarking} have both used KinoML to create featurization and docking pipelines of their kinase data, which were then used for ML applications. 
+KinoML also served as the basis for some work in the Chodera lab within the Covid Moonshot context \cite{Boby2023}, and it inspired the software development in the ASAP Discovery project\footnote{\href{https://github.com/asapdiscovery}{https://github.com/asapdiscovery}.}. Additionally, KinoML's generalized framework has been utilized to model conformations of PDB structures \cite{Perner2023}. Moreover, KinoML provided fingerprinting frameworks for classifying inhibitors, which led to the identification of combinations of kinase inhibitors that exhibit reduced off-target efficacy \cite{Outhwaite2023}.
+
+%\begin{itemize}
+%    \item basis for some Choderalab work in moonshot context \cite{Boby2023}, and inspired the software development in asap discovery \footnote{\href{https://github.com/asapdiscovery}{https://github.com/asapdiscovery}.}
+%    \item Use of generalized framework to model conformations of PDB structures \cite{Perner2023}
+%    \item KinoML provided  fingerprinting frameworks for classifying inhibitors which led to identifying combinations of kinase inhibitors that have reduced off-target efficacy \cite{Outhwaite2023} 
+%\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONCLUSIONS/FUTURE PERSPECTIVES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conclusions/Future Perspectives}
+In this work we have presented our experiences building KinoML, highlighting its capabilities, usability, and its focus on ensuring reproducibility in ML experiments. However, the purpose of this manuscript is not only to display KinoML's potential, but also to establish some best practices when conducting molecular ML experiments. The summary of the key recommended procedures discussed in this manuscript are: 
+\begin{itemize}
+    \item \textbf{Reproducible data collection}: to always ensure reproducibility and immutability of the starting point of your experiments, store unmodified raw data and used versioned database copies. 
+    \item \textbf{Data deposition}: for any data preprocessing step before storing it (e.g. extracting data from HTML), always ensure to provide the code used for this purpose. Also, choose where to store your data depending on its size keeping in mind to guarantee long-term availability of the stored data.
+    \item \textbf{Molecular data collection}: when collecting and searching for protein data across different data sources it is best to use the \textit{UniprotID} as the primary search key, since this is universal. In the case of kinases, we have shown that different kinase-centric databases have different kinase definitions and names, so it is important to craft a unified database with the target kinases of interest. 
+    %You can follow the steps to obtain a multi-source kinase database with this Jupyter Notebook \url{https://github.com/openkinome/kinodata/blob/master/human-kinases/human_kinases.ipynb}. 
+    Another main aspect when collecting molecular data is to ensure the harmonization of the bioactivity data. Pay special attention to the units and assay conditions of all measurements to ensure that either they can be converted to or have the same units for appropriate comparison.
+    \item \textbf{Data format for ML}: tensors representing the molecular featurizations should always be kept on disk for reusability and reproducibility of ML models. It is important to choose a tensor output format that can support heterogeneously shaped tensors. For example, in KinoML we chose ragged arrays, which can store heterogeneous tensors and offer a good balance between performance and flexibility.
+\end{itemize}
+
+By implementing the best practices discussed above, KinoML presents itself as a machine learning framework for small molecule drug discovery with a strong focus on reproducibility.  %In particular, by offering structure-based models, it can  outperform ligand-based methods in offering insights into the mechanisms behind ligand binding, \cite{sliwoski2014computational}. The so-generated models have the potential to revolutionize drug design, enabling the creation of potent drugs with enhanced polypharmacology, increased efficiency, and decreased resistance. Therefore, it is vital to take steps towards integrating structure-based methods in drug discovery pipelines, and KinoML is a clear example of such an effort.
+
+
+Overall, KinoML serves as a comprehensive and modular ML framework that not only facilitates easy access and curation of data but also enables the featurization of data, making it ML-readable in a user-friendly fashion. By seamlessly integrating structure-based experiments, KinoML has the potential to be a powerful tool for researchers in the field of kinase drug discovery. For example, KinoML's docking pipelines have been used in published work. \cite{backenkohler2023guided, schaller2023benchmarking}.  Future work regarding KinoML is the incorporation of physical methods, such as scalable free energy calculations, for more precise and physically-informed workflows for engineering small molecule kinase inhibitors with specific polypharmacologies. Note that KinoML is under heavy development right now, and we hope an official release is forthcoming.
+
+%In essence, KinoML not only contributes to the ongoing transformation of drug discovery pipelines through ML, but building KinoML has forced us to reflect on the broader implications and challenges in the field, which we have compiled in this manuscript. Additionally, 
+The lessons learned from KinoML's construction are applicable beyond the kinase superfamily, offering insights and guidance for the development of infrastructure in other areas of drug design. Furthermore, Kino\-ML is an example of taking steps towards integrating structure-based methods in drug discovery pipelines. Overall, KinoML can serve as a key tool, facilitating and guiding users toward more efficient, reproducible, and impactful research in the realm of structure-enabled ML drug design.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
+% Code and Data Availability
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Code and data availability}
+All code is available under the MIT license at the openkinome organization \url{https://github.com/openkinome}. The acquisition is available under \url{https://github.com/openkinome/kinodata}, the remaining functionality under \url{https://github.com/openkinome/kinoml}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author Contributions 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Author Contributions}
+% following this https://www.cell.com/pb/assets/raw/shared/guidelines/CRediT-taxonomy.pdf
+%Conceptualization, \textcolor{red}{todo}; 
+%Methodology, \textcolor{red}{todo}; 
+%Investigation, \textcolor{red}{todo}; 
+%Writing – Original Draft, \textcolor{red}{todo}; 
+%Writing – Review and Editing, \textcolor{red}{todo}; 
+%Nitpicking - GPH
+%Funding Acquisition, AV and JDC; 
+%Resources, AV and JDC;
+%Supervision, AV and JDC.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Acknowledgments 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Acknowledgments}
+
+The authors thank OpenEye Scientific Cadence Molecular Sciences for providing a free academic license to the OpenEye Toolkits to the Chodera lab.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Funding 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Funding}
+
+DAS acknowledges financial support from Bayer AG. AV and JDC acknowledge financial support from a BIH Einstein Visiting Professor Fellowship, including the positions of RLRC, JRG, TBK, CT and GPH. We are thankful for funding from Saarland University for the NextAID project through which the positions of MB, and PLK are supported. JDC acknowledges support from NIH grant P30 CA008748, NIH grant R01 GM121505, and the Sloan Kettering Institute.  S.S. is a Damon Runyon Quantitative Biology Fellow supported by the Damon Runyon Cancer Research Foundation (DRQ-14-22) and acknowledges support from a NCI Pathway to Independence Award for Outstanding Early-Stage Postdoctoral Researchers (NCI K99 CA286801).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Disclosures 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Disclosures}
+
+JDC is a current member of the Scientific Advisory Board of OpenEye Scientific Software, Re341 design Science, Ventus Therapeutics, and Interline Therapeutics, and has equity interests in Redesign Science and Interline Therapeutics. The Chodera laboratory receives or has received funding from multiple sources, including the National Institutes of Health, the National Science Foundation, the Parker Institute for Cancer Immunotherapy, Relay Therapeutics, Entasis Therapeutics, Silicon Therapeutics, EMD Serono (Merck KGaA), AstraZeneca, Vir Biotechnology, Bayer, XtalPi, In3terline Therapeutics, the Molecular Sciences Software Institute, the Starr Cancer Consortium, the Open Force Field Consortium, Cycle for Survival, a Louis V. Gerstner Young Investigator Award, and the Sloan Kettering Institute. A complete funding history for the Chodera lab can be found at
+\url{http://choderalab.org/funding}. JBW is a consultant for and has equity interest in SpringWorks Therapeutics.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Abbreviations 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\subsection{List of abbreviations}
+
+%\nocite{*} % This command displays all refs in the bib file. PLEASE DELETE IT BEFORE YOU SUBMIT YOUR MANUSCRIPT!
+\nolinenumbers % JDCAMD requires there be no line numbers in the references because their automated plagarism detection software is garbage
+\bibliography{bibliography}
+\linenumbers
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% APPENDICES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+
+\end{document}
+
